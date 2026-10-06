@@ -810,7 +810,7 @@ async function connect(){
     },()=>{ref=null;setSync('Saved on this device only');});
   }catch(e){setSync('Saved on this device only');}
 }
-function commit(fn){undo.push(JSON.stringify(state));if(undo.length>60)undo.shift();fn();cleanup();save();render();}
+function commit(fn){const snap=JSON.stringify(state);try{fn();}catch(err){console.error(err);state=JSON.parse(snap);note='Something went wrong, so nothing was changed. Please try again.';render();return;}undo.push(snap);if(undo.length>60)undo.shift();cleanup();save();render();}
 const $=id=>document.getElementById(id);
 const stu=id=>E().students.find(s=>s.id===id);
 const sec=id=>E().sections.find(s=>s.id===id)||NOSEC;
@@ -1302,7 +1302,7 @@ $('preview').addEventListener('change',e=>{if(!imp)return;
 $('preview').addEventListener('click',e=>{const a=e.target.closest('[data-imp]');if(!a||!imp)return;
   if(a.dataset.imp==='cancel'){imp=null;renderPreview();return;}
   const fresh=imp.fresh||[];imp=null;$('paste').value='';
-  commit(()=>{fresh.forEach(addStudent);note=`Added ${fresh.length} student${fresh.length===1?'':'s'}. Press Auto-arrange to place them, or tap a name and then a spot.`;});});
+  commit(()=>{fresh.forEach(o=>addStudent(o));note=`Added ${fresh.length} student${fresh.length===1?'':'s'}. Press Auto-arrange to place them, or tap a name and then a spot.`;});});
 document.querySelector('.roster').addEventListener('click',e=>{
   if(e.target.closest('#preview'))return;
   const pk=e.target.closest('[data-pick]'),ed=e.target.closest('[data-edit]');
